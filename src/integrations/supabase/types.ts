@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      rag_documents: {
+        Row: {
+          act: string
+          article_id: string
+          batch_id: string
+          content: string
+          created_at: string
+          filename: string
+          id: string
+          source_prompt: string
+        }
+        Insert: {
+          act: string
+          article_id: string
+          batch_id: string
+          content: string
+          created_at?: string
+          filename: string
+          id?: string
+          source_prompt: string
+        }
+        Update: {
+          act?: string
+          article_id?: string
+          batch_id?: string
+          content?: string
+          created_at?: string
+          filename?: string
+          id?: string
+          source_prompt?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
