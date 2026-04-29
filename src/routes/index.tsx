@@ -350,6 +350,12 @@ function Index() {
     return !q || c.act.toLowerCase().includes(q) || c.category.toLowerCase().includes(q);
   });
 
+  // Count unique generated documents per act (by article_id) from saved library
+  const generatedByAct = history.reduce<Record<string, Set<string>>>((acc, d) => {
+    (acc[d.act] ||= new Set()).add(d.article_id);
+    return acc;
+  }, {});
+
   const statusBadge = (d: DocResult, index: number) => {
     switch (d.status) {
       case "pending": return <Badge variant="outline" className="text-[10px]">Queued</Badge>;
