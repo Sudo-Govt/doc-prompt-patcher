@@ -26,3 +26,38 @@ create policy "Anyone can insert rag_documents"
 create policy "Anyone can delete rag_documents"
   on public.rag_documents for delete
   using (true);
+
+-- Tracks which documents have already been generated, keyed by input hash.
+create table if not exists public.generated_documents (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  list_item_id    text not null,
+  input_hash      text not null,
+  filename        text not null,
+  output_path     text not null,
+  prompt_version  text,
+  generated_at    timestamptz not null default now()
+);
+
+create unique index if not exists generated_documents_user_hash_uniq
+  on public.generated_documents (user_id, input_hash);
+
+create index if not exists generated_documents_user_id_idx
+  on public.generated_documents (user_id);
+
+alter table public.generated_documents enable row level security;
+
+create policy "own rows: select"
+  on public.generated_documents for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "own rows: insert"
+  on public.generated_documents for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+create policy "own rows: delete"
+  on public.generated_documents for delete
+  to authenticated
+  using (auth.uid() = user_id);
