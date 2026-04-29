@@ -19,8 +19,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   Download, Play, Pause, Loader2, FileText, Package, KeyRound,
-  Library, Sparkles, Trash2, BookOpen, RotateCcw, RefreshCw, Square, Pencil,
+  Library, Sparkles, Trash2, BookOpen, RotateCcw, RefreshCw, Square, Pencil, CheckCircle2,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/")({
   head: () => ({
