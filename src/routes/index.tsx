@@ -19,8 +19,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   Download, Play, Pause, Loader2, FileText, Package, KeyRound,
-  Library, Sparkles, Trash2, BookOpen, RotateCcw, RefreshCw, Square, Pencil,
+  Library, Sparkles, Trash2, BookOpen, RotateCcw, RefreshCw, Square, Pencil, CheckCircle2,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -349,6 +350,12 @@ function Index() {
     return !q || c.act.toLowerCase().includes(q) || c.category.toLowerCase().includes(q);
   });
 
+  // Count unique generated documents per act (by article_id) from saved library
+  const generatedByAct = history.reduce<Record<string, Set<string>>>((acc, d) => {
+    (acc[d.act] ||= new Set()).add(d.article_id);
+    return acc;
+  }, {});
+
   const statusBadge = (d: DocResult, index: number) => {
     switch (d.status) {
       case "pending": return <Badge variant="outline" className="text-[10px]">Queued</Badge>;
@@ -551,15 +558,33 @@ function Index() {
                       const lt: LawType = c.lawType ?? "default";
                       const hasCustom = !!customPrompts[c.act];
                       const pill = lawTypePill[lt];
+                      const generated = generatedByAct[c.act]?.size ?? 0;
+                      const total = c.count || 0;
+                      const pct = total > 0 ? Math.min(100, Math.round((generated / total) * 100)) : 0;
+                      const complete = total > 0 && generated >= total;
                       return (
                         <li key={i} className="px-4 py-3 flex items-center gap-2 flex-wrap">
                           <div className="flex-1 min-w-[200px]">
                             <div className="flex items-center gap-2 flex-wrap">
+                              {complete && (
+                                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                              )}
                               <span className="text-sm font-medium">{c.act}</span>
                               <Badge variant="outline" className="text-[10px]">{c.category}</Badge>
                               <Badge variant="secondary" className="text-[10px]">{c.count} {c.unit}s</Badge>
+                              {generated > 0 && (
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] ${complete ? "border-green-500 text-green-700" : "border-primary/50 text-primary"}`}
+                                >
+                                  {generated}/{total} · {pct}%
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.description}</p>
+                            {generated > 0 && !complete && (
+                              <Progress value={pct} className="h-1 mt-1.5" />
+                            )}
                           </div>
                           <span
                             className="text-[10px] font-medium whitespace-nowrap shrink-0"
@@ -590,7 +615,7 @@ function Index() {
                             disabled={running}
                             className="gap-1 shrink-0"
                           >
-                            <Play className="h-3 w-3" /> Generate
+                            <Play className="h-3 w-3" /> {complete ? "Regen" : "Generate"}
                           </Button>
                         </li>
                       );
